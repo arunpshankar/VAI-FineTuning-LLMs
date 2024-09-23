@@ -6,6 +6,18 @@ __pycache__/
 # C extensions
 *.so
 
+# DS_Store
+.DS_Store
+.DS_Store/
+
+# Credentials 
+credentials
+credentials/
+
+# venv 
+.vai-finetuning-llms
+.vai-finetuning-llms/
+
 # Distribution / packaging
 .Python
 build/
