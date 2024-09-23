@@ -1,0 +1,3 @@
+train_dataset_path: 'gs://your-bucket/train/sft_train_samples.jsonl'
+validation_dataset_path: 'gs://your-bucket/val/sft_val_samples.jsonl'
+test_dataset_path: 'data/sft_test_samples.csv'

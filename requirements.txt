@@ -1,0 +1,9 @@
+google-cloud-aiplatform>=1.27.0
+vertexai
+google-cloud-storage
+pandas
+jsonlines
+plotly
+tqdm
+rouge-score
+PyYAML
