@@ -5,7 +5,8 @@ import json
 
 
 def get_job_name_with_datetime(prefix: str) -> str:
-    """Generates a unique job name with a timestamp.
+    """
+    Generates a unique job name with a timestamp.
 
     Args:
         prefix (str): The prefix for the job name.
@@ -19,7 +20,8 @@ def get_job_name_with_datetime(prefix: str) -> str:
 
 
 def get_quota(project_id: str, region: str, resource_id: str) -> int:
-    """Returns the quota for a resource in a specified region.
+    """
+    Returns the quota for a resource in a specified region.
 
     Args:
         project_id (str): The Google Cloud project ID.
@@ -79,12 +81,9 @@ def get_quota(project_id: str, region: str, resource_id: str) -> int:
         raise RuntimeError("Error parsing quota data.") from e
 
 
-def get_resource_id(
-    accelerator_type: str,
-    is_for_training: bool,
-    is_restricted_image: bool = False,
-) -> str:
-    """Returns the resource ID for a given accelerator type and use case.
+def get_resource_id(accelerator_type: str, is_for_training: bool, is_restricted_image: bool = False) -> str:
+    """
+    Returns the resource ID for a given accelerator type and use case.
 
     Args:
         accelerator_type (str): The accelerator type (e.g., 'NVIDIA_L4').
@@ -141,15 +140,9 @@ def get_resource_id(
         raise ValueError(error_msg)
 
 
-def check_quota(
-    project_id: str,
-    region: str,
-    accelerator_type: str,
-    accelerator_count: int,
-    is_for_training: bool,
-    is_restricted_image: bool = False,
-) -> None:
-    """Checks if the project and region have the required quota.
+def check_quota(project_id: str, region: str, accelerator_type: str, accelerator_count: int, is_for_training: bool, is_restricted_image: bool = False) -> None:
+    """
+    Checks if the project and region have the required quota.
 
     Args:
         project_id (str): Google Cloud project ID.
