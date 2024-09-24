@@ -1,4 +1,5 @@
-from vertexai.generative_models import GenerationConfig, GenerativeModel
+from vertexai.generative_models import GenerationConfig
+from vertexai.generative_models import GenerativeModel
 from src.config.logging import logger
 from src.config.loader import config
 from rouge_score import rouge_scorer
