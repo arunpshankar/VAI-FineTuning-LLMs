@@ -1,5 +1,5 @@
 project:
-  project_id: 'your-google-cloud-project-id'
-  location: 'us-central1'
-  bucket_name: 'your-bucket-name'
-  credentials_path: '/path/to/credentials.json'
+  project_id: arun-genai-bb
+  location: us-central1
+  bucket_name: 'vai-finetuning-llms'
+  credentials_path: './credentials/key.json'
