@@ -1,19 +1,22 @@
-import logging
-import yaml
-import os
+from src.config.logging import logger 
 from google.cloud import storage
-import jsonlines
+from typing import List
+from typing import Dict 
 import pandas as pd
-from typing import List, Dict
+import jsonlines
+import yaml
+
 
 def prepare_data():
-    """Prepares the dataset for model tuning."""
-    logging.info("Starting data preparation.")
+    """
+    Prepares the dataset for model tuning.
+    """
+    logger.info("Starting data preparation.")
     try:
         # Load configurations
-        with open('configs/dataset_config.yaml', 'r') as file:
+        with open('configs/dataset.yaml', 'r') as file:
             dataset_config = yaml.safe_load(file)
-        with open('configs/project_config.yaml', 'r') as file:
+        with open('configs/project.yaml', 'r') as file:
             project_config = yaml.safe_load(file)
 
         bucket_name = project_config['bucket_name']
@@ -34,9 +37,9 @@ def prepare_data():
         upload_to_gcs(train_file_local, f"{bucket_uri}/train/{train_file_local}")
         upload_to_gcs(val_file_local, f"{bucket_uri}/val/{val_file_local}")
 
-        logging.info("Data preparation completed successfully.")
+        logger.info("Data preparation completed successfully.")
     except Exception as e:
-        logging.exception("An error occurred during data preparation.")
+        logger.exception("An error occurred during data preparation.")
         raise e
 
 def create_tuning_samples(file_path: str) -> List[Dict]:
@@ -53,7 +56,7 @@ def create_tuning_samples(file_path: str) -> List[Dict]:
                 instances.append({"contents": instance})
         return instances
     except Exception as e:
-        logging.exception(f"Failed to create tuning samples from {file_path}.")
+        logger.exception(f"Failed to create tuning samples from {file_path}.")
         raise e
 
 def save_jsonlines(file: str, instances: List[Dict]) -> None:
@@ -62,7 +65,7 @@ def save_jsonlines(file: str, instances: List[Dict]) -> None:
         with jsonlines.open(file, mode="w") as writer:
             writer.write_all(instances)
     except Exception as e:
-        logging.exception(f"Failed to save jsonlines to {file}.")
+        logger.exception(f"Failed to save jsonlines to {file}.")
         raise e
 
 def upload_to_gcs(local_file: str, gcs_uri: str) -> None:
@@ -74,7 +77,7 @@ def upload_to_gcs(local_file: str, gcs_uri: str) -> None:
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
         blob.upload_from_filename(local_file)
-        logging.info(f"Uploaded {local_file} to {gcs_uri}.")
+        logger.info(f"Uploaded {local_file} to {gcs_uri}.")
     except Exception as e:
-        logging.exception(f"Failed to upload {local_file} to {gcs_uri}.")
+        logger.exception(f"Failed to upload {local_file} to {gcs_uri}.")
         raise e
