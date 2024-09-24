@@ -2,7 +2,8 @@ from vertexai.generative_models import GenerationConfig, GenerativeModel
 from src.config.logging import logger
 from src.config.loader import config
 from rouge_score import rouge_scorer
-from typing import List, Dict
+from typing import List
+from typing import Dict 
 from tqdm import tqdm
 import pandas as pd
 
