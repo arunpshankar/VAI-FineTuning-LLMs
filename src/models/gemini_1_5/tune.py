@@ -1,12 +1,13 @@
-import logging
-import yaml
-import time
-from google.cloud import aiplatform
+
 from vertexai.preview.tuning import sft
+from src.config.logging import logger 
+import time
+import yaml
+
 
 def tune_model():
     """Tunes the Gemini model using supervised fine-tuning."""
-    logging.info("Starting model tuning.")
+    logger.info("Starting model tuning.")
     try:
         with open('configs/hyperparameters.yaml', 'r') as file:
             hyperparams = yaml.safe_load(file)
@@ -34,12 +35,12 @@ def tune_model():
 
         # Wait for the tuning job to complete
         while not sft_tuning_job.refresh().has_ended:
-            logging.info("Tuning job in progress...")
+            logger.info("Tuning job in progress...")
             time.sleep(60)
 
-        logging.info("Model tuning completed successfully.")
+        logger.info("Model tuning completed successfully.")
         return sft_tuning_job
 
     except Exception as e:
-        logging.exception("An error occurred during model tuning.")
+        logger.exception("An error occurred during model tuning.")
         raise e
