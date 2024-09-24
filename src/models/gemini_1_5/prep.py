@@ -1,30 +1,20 @@
-from src.config.logging import logger 
+import logging
 from google.cloud import storage
-from typing import List
-from typing import Dict 
-import pandas as pd
+import os
+from typing import List, Dict
 import jsonlines
-import yaml
-
+from src.config.config import config  # Import the Config singleton
 
 def prepare_data():
-    """
-    Prepares the dataset for model tuning.
-    """
-    logger.info("Starting data preparation.")
+    """Prepares the dataset for model tuning."""
+    logging.info("Starting data preparation.")
     try:
-        # Load configurations
-        with open('configs/dataset.yaml', 'r') as file:
-            dataset_config = yaml.safe_load(file)
-        with open('configs/project.yaml', 'r') as file:
-            project_config = yaml.safe_load(file)
-
-        bucket_name = project_config['bucket_name']
-        bucket_uri = f"gs://{bucket_name}"
-
-        # Convert datasets and upload to GCS
+        # Access dataset paths from Config
         train_file_local = 'sft_train_samples.jsonl'
         val_file_local = 'sft_val_samples.jsonl'
+
+        train_dataset_path = config.DATASET.get('train_dataset_path')
+        val_dataset_path = config.DATASET.get('validation_dataset_path')
 
         # Convert datasets
         train_instances = create_tuning_samples(train_file_local)
@@ -34,12 +24,12 @@ def prepare_data():
         save_jsonlines(val_file_local, val_instances)
 
         # Upload to GCS
-        upload_to_gcs(train_file_local, f"{bucket_uri}/train/{train_file_local}")
-        upload_to_gcs(val_file_local, f"{bucket_uri}/val/{val_file_local}")
+        upload_to_gcs(train_file_local, train_dataset_path)
+        upload_to_gcs(val_file_local, val_dataset_path)
 
-        logger.info("Data preparation completed successfully.")
+        logging.info("Data preparation completed successfully.")
     except Exception as e:
-        logger.exception("An error occurred during data preparation.")
+        logging.exception("An error occurred during data preparation.")
         raise e
 
 def create_tuning_samples(file_path: str) -> List[Dict]:
@@ -56,7 +46,7 @@ def create_tuning_samples(file_path: str) -> List[Dict]:
                 instances.append({"contents": instance})
         return instances
     except Exception as e:
-        logger.exception(f"Failed to create tuning samples from {file_path}.")
+        logging.exception(f"Failed to create tuning samples from {file_path}.")
         raise e
 
 def save_jsonlines(file: str, instances: List[Dict]) -> None:
@@ -65,7 +55,7 @@ def save_jsonlines(file: str, instances: List[Dict]) -> None:
         with jsonlines.open(file, mode="w") as writer:
             writer.write_all(instances)
     except Exception as e:
-        logger.exception(f"Failed to save jsonlines to {file}.")
+        logging.exception(f"Failed to save jsonlines to {file}.")
         raise e
 
 def upload_to_gcs(local_file: str, gcs_uri: str) -> None:
@@ -77,7 +67,7 @@ def upload_to_gcs(local_file: str, gcs_uri: str) -> None:
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
         blob.upload_from_filename(local_file)
-        logger.info(f"Uploaded {local_file} to {gcs_uri}.")
+        logging.info(f"Uploaded {local_file} to {gcs_uri}.")
     except Exception as e:
-        logger.exception(f"Failed to upload {local_file} to {gcs_uri}.")
+        logging.exception(f"Failed to upload {local_file} to {gcs_uri}.")
         raise e
