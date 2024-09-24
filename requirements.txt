@@ -26,6 +26,7 @@ nltk==3.9.1
 numpy==2.1.1
 packaging==24.1
 pandas==2.2.3
+plotly==5.24.1
 proto-plus==1.24.0
 protobuf==5.28.2
 pyasn1==0.6.1
@@ -41,6 +42,7 @@ rouge_score==0.1.2
 rsa==4.9
 shapely==2.0.6
 six==1.16.0
+tenacity==9.0.0
 tqdm==4.66.5
 typing_extensions==4.12.2
 tzdata==2024.2
