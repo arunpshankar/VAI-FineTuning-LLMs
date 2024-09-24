@@ -3,7 +3,7 @@ from src.models.gemini_1_5.prep import prepare_data
 from src.models.gemini_1_5.tune import tune_model
 from src.setup import setup_environment
 from src.config.logging import logger
-from utils.plot import plot_metrics
+from src.utils.plot import plot_metrics
 
 
 def run():

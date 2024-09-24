@@ -155,4 +155,4 @@ class Config:
 # Initialize the Config singleton with the chosen model name
 # For example, to load configurations for the 'gemini' model:
 
-config = Config(model_name='gemini')
+config = Config(model_name='gemini_1_5')
