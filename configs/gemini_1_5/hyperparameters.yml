@@ -1,3 +1,5 @@
-tuned_model_display_name: 'your-tuned-model-display-name'
-epochs: 1
-learning_rate_multiplier: 1.0
+hyperparameters:
+  tuned_model_display_name: 'your-tuned-model-display-name'
+  epochs: 1
+  learning_rate_multiplier: 1.0
+  adapter_size: 4
