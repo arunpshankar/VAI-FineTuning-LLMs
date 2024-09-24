@@ -35,7 +35,7 @@ def get_metrics(tuning_job, metric: str = "/train_total_loss") -> Tuple[List[int
         raise e
 
 
-def get_experiment_from_job(tuning_job) -> Experiment:
+def get_experiment_from_job(tuning_job) -> Experiment: # type: ignore
     """
     Retrieve the experiment associated with the tuning job.
     
