@@ -9,11 +9,11 @@ def tune_model():
     """Tunes the Gemini model using supervised fine-tuning."""
     logger.info("Starting model tuning.")
     try:
-        with open('configs/hyperparameters.yaml', 'r') as file:
+        with open('configs/hyperparameters.yml', 'r') as file:
             hyperparams = yaml.safe_load(file)
-        with open('configs/dataset_config.yaml', 'r') as file:
+        with open('configs/dataset.yml', 'r') as file:
             dataset_config = yaml.safe_load(file)
-        with open('configs/project_config.yaml', 'r') as file:
+        with open('configs/project.yml', 'r') as file:
             project_config = yaml.safe_load(file)
 
         tuned_model_display_name = hyperparams['tuned_model_display_name']
