@@ -6,7 +6,9 @@ import yaml
 
 
 def tune_model():
-    """Tunes the Gemini model using supervised fine-tuning."""
+    """
+    Tunes the Gemini model using supervised fine-tuning.
+    """
     logger.info("Starting model tuning.")
     try:
         with open('configs/hyperparameters.yml', 'r') as file:
