@@ -50,10 +50,10 @@ def evaluate_model(tuning_job) -> None:
         evaluation_stats = evaluation_df.dropna().describe()
         logger.info(f"Evaluation completed. Metrics: \n{evaluation_stats}")
 
-        # Save evaluation results as CSV
-        output_csv_path = "./data/output/gemini_1_5/evaluation_results.csv"
-        evaluation_df.to_csv(output_csv_path, index=False)
-        logger.info(f"Evaluation results saved to {output_csv_path}")
+        # Save evaluation stats as CSV
+        output_csv_path = "./data/output/gemini_1_5/evaluation_stats.csv"
+        evaluation_stats.to_csv(output_csv_path, index=True)
+        logger.info(f"Evaluation statistics saved to {output_csv_path}")
 
     except Exception as e:
         logger.exception("An error occurred during model evaluation.")
