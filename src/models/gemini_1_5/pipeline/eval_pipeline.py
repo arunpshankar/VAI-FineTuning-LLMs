@@ -66,7 +66,7 @@ def get_tuning_job():
         logger.info("Retrieving the tuning job.")
         project = config.PROJECT.get('project_id')
         location = config.PROJECT.get('location')
-        tuning_job_id = "4577657336138563584"  # You might want to make this configurable
+        tuning_job_id = "40843661516210176"  # You might want to make this configurable
         job = sft.SupervisedTuningJob(
             f"projects/{project}/locations/{location}/tuningJobs/{tuning_job_id}"
         )

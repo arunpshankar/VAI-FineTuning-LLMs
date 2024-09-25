@@ -1,11 +1,12 @@
+from vertexai.generative_models import HarmBlockThreshold
 from vertexai.generative_models import GenerationConfig
 from vertexai.generative_models import GenerativeModel
+from vertexai.generative_models import HarmCategory
 from src.config.logging import logger
 from src.config.loader import config
 from rouge_score import rouge_scorer
-from random import randint 
-from typing import List
-from typing import Dict 
+from random import randint
+from typing import List, Dict
 from time import sleep
 from tqdm import tqdm
 import pandas as pd
@@ -32,12 +33,16 @@ def evaluate_model(tuning_job) -> None:
         # Initialize the tuned model from the endpoint
         tuned_model = initialize_model(tuning_job.tuned_model_endpoint_name)
 
+        # Create safety settings once and pass them to the evaluation function
+        safety_settings = create_safety_settings()
+
         # Run the evaluation process
         evaluation_df = run_evaluation(
             tuned_model,
             corpus,
             temperature,
-            max_output_tokens
+            max_output_tokens,
+            safety_settings
         )
 
         # Log evaluation statistics
@@ -67,7 +72,13 @@ def initialize_model(endpoint_name: str) -> GenerativeModel:
         raise e
 
 
-def run_evaluation(model: GenerativeModel, corpus: List[Dict], temperature: float, max_output_tokens: int) -> pd.DataFrame:
+def run_evaluation(
+    model: GenerativeModel, 
+    corpus: List[Dict], 
+    temperature: float, 
+    max_output_tokens: int, 
+    safety_settings: Dict[HarmCategory, HarmBlockThreshold]
+) -> pd.DataFrame:
     """
     Runs evaluation on the given generative model using the test data.
     
@@ -76,6 +87,7 @@ def run_evaluation(model: GenerativeModel, corpus: List[Dict], temperature: floa
         corpus (List[Dict]): The test dataset, each containing 'input_text' and 'output_text'.
         temperature (float): The temperature setting for text generation.
         max_output_tokens (int): The maximum number of tokens for the generated content.
+        safety_settings (Dict[HarmCategory, HarmBlockThreshold]): Safety settings for content generation.
     
     Returns:
         pd.DataFrame: DataFrame containing evaluation results including ROUGE scores.
@@ -94,7 +106,7 @@ def run_evaluation(model: GenerativeModel, corpus: List[Dict], temperature: floa
             document = item.get("input_text")
             summary = item.get("output_text")
 
-            generated_summary = generate_summary(model, document, generation_config)
+            generated_summary = generate_summary(model, document, generation_config, safety_settings)
             scores = scorer.score(target=summary, prediction=generated_summary)
 
             records.append(
@@ -115,7 +127,35 @@ def run_evaluation(model: GenerativeModel, corpus: List[Dict], temperature: floa
         raise e
 
 
-def generate_summary(model: GenerativeModel, document: str, generation_config: GenerationConfig) -> str:
+def create_safety_settings() -> Dict[HarmCategory, HarmBlockThreshold]:
+    """
+    Creates safety settings for content generation.
+    
+    Returns:
+        Dict[HarmCategory, HarmBlockThreshold]: Safety settings to apply.
+    """
+    try:
+        logger.info("Creating safety settings.")
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE
+        }
+        logger.info("Successfully created safety settings.")
+        return safety_settings
+    except Exception as e:
+        logger.error(f"Error creating safety settings: {e}")
+        raise
+
+
+def generate_summary(
+    model: GenerativeModel, 
+    document: str, 
+    generation_config: GenerationConfig, 
+    safety_settings: Dict[HarmCategory, HarmBlockThreshold]
+) -> str:
     """
     Generates a summary for a given document using the model.
     
@@ -123,19 +163,24 @@ def generate_summary(model: GenerativeModel, document: str, generation_config: G
         model (GenerativeModel): The generative model to use for generating content.
         document (str): The input document to summarize.
         generation_config (GenerationConfig): Configuration for generation (temperature, token limit).
+        safety_settings (Dict[HarmCategory, HarmBlockThreshold]): Pre-created safety settings.
     
     Returns:
         str: The generated summary.
     """
     max_retries = 3
-    base_temperature = generation_config.temperature
-    
+    fallback_summary = "Summary generation failed."
+
+    base_temperature = generation_config.to_dict().get('temperature')
+
     for attempt in range(max_retries):
         try:
             logger.info(f"Generating summary for document of length {len(document)}. Attempt {attempt + 1}/{max_retries}")
+            
             response = model.generate_content(
                 contents=document,
-                generation_config=generation_config
+                generation_config=generation_config,
+                safety_settings=safety_settings
             )
             return response.text
         except Exception as e:
@@ -153,8 +198,7 @@ def generate_summary(model: GenerativeModel, document: str, generation_config: G
                 logger.info(f"Retrying in {sleep_time:.2f} seconds with temperature {generation_config.temperature}")
                 sleep(sleep_time)
             else:
-                logger.error("Max retries reached. Unable to generate summary.")
-                return ""  # Return empty string if all attempts fail
+                logger.error("Max retries reached. Returning fallback summary.")
+                return fallback_summary
     
-    # This line should never be reached, but including it for completeness
-    return ""
+    return fallback_summary  # Ensure that there's always a non-empty string returned
