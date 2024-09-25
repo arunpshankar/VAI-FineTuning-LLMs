@@ -3,8 +3,10 @@ from vertexai.generative_models import GenerativeModel
 from src.config.logging import logger
 from src.config.loader import config
 from rouge_score import rouge_scorer
+from random import randint 
 from typing import List
 from typing import Dict 
+from time import sleep
 from tqdm import tqdm
 import pandas as pd
 
@@ -65,12 +67,7 @@ def initialize_model(endpoint_name: str) -> GenerativeModel:
         raise e
 
 
-def run_evaluation(
-    model: GenerativeModel,
-    corpus: List[Dict],
-    temperature: float,
-    max_output_tokens: int
-) -> pd.DataFrame:
+def run_evaluation(model: GenerativeModel, corpus: List[Dict], temperature: float, max_output_tokens: int) -> pd.DataFrame:
     """
     Runs evaluation on the given generative model using the test data.
     
@@ -130,13 +127,34 @@ def generate_summary(model: GenerativeModel, document: str, generation_config: G
     Returns:
         str: The generated summary.
     """
-    try:
-        logger.info(f"Generating summary for document of length {len(document)}.")
-        response = model.generate_content(
-            contents=document,
-            generation_config=generation_config
-        )
-        return response.text
-    except Exception as e:
-        logger.exception(f"Error while generating summary for document: {document[:100]}...")
-        raise e
+    max_retries = 3
+    base_temperature = generation_config.temperature
+    
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Generating summary for document of length {len(document)}. Attempt {attempt + 1}/{max_retries}")
+            response = model.generate_content(
+                contents=document,
+                generation_config=generation_config
+            )
+            return response.text
+        except Exception as e:
+            if "safety" in str(e).lower():
+                logger.error(f"Safety filter triggered: {str(e)}")
+            else:
+                logger.error(f"Error while generating summary: {str(e)}")
+            
+            if attempt < max_retries - 1:
+                # Increase temperature for retry
+                generation_config.temperature = base_temperature + (attempt + 1) * 0.5
+                
+                # Exponential backoff
+                sleep_time = (2 ** attempt) + (randint(0, 1000) / 1000)
+                logger.info(f"Retrying in {sleep_time:.2f} seconds with temperature {generation_config.temperature}")
+                sleep(sleep_time)
+            else:
+                logger.error("Max retries reached. Unable to generate summary.")
+                return ""  # Return empty string if all attempts fail
+    
+    # This line should never be reached, but including it for completeness
+    return ""

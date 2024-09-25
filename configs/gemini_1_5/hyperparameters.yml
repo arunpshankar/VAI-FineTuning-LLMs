@@ -1,5 +1,5 @@
 hyperparameters:
-  tuned_model_display_name: 'your-tuned-model-display-name'
+  tuned_model_display_name: 'gemini-1_5_tuned-summarize'
   epochs: 1
   learning_rate_multiplier: 1.0
   adapter_size: 4

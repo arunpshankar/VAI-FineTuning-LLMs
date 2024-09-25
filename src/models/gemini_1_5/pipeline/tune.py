@@ -26,6 +26,8 @@ def run():
 
         # Step 3: Model tuning
         tuning_job = tune_and_log_model()
+        print(tuning_job)
+        print(tuning_job.__dict__)
 
         # Step 4: Model evaluation
         evaluate_and_log_model(tuning_job)
