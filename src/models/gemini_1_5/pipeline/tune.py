@@ -1,9 +1,7 @@
-from src.models.gemini_1_5.evaluate import evaluate_model
 from src.models.gemini_1_5.prep import prepare_data
 from src.models.gemini_1_5.tune import tune_model
 from src.setup import setup_environment
-from src.config.logging import logger
-from src.utils.plot import plot_metrics
+from src.config.logging import logger 
 
 
 def run():
@@ -13,8 +11,6 @@ def run():
         1. Setup environment
         2. Prepare data
         3. Tune the model
-        4. Evaluate the tuned model
-        5. Plot evaluation metrics
     """
     logger.info("Starting the supervised fine-tuning pipeline.")
     try:
@@ -28,12 +24,6 @@ def run():
         tuning_job = tune_and_log_model()
         print(tuning_job)
         print(tuning_job.__dict__)
-
-        # Step 4: Model evaluation
-        evaluate_and_log_model(tuning_job)
-
-        # Step 5: Plot evaluation metrics
-        plot_and_log_metrics(tuning_job)
 
         logger.info("Pipeline completed successfully.")
     
@@ -81,38 +71,6 @@ def tune_and_log_model():
         return tuning_job
     except Exception as e:
         logger.exception("Model tuning failed.")
-        raise e
-
-
-def evaluate_and_log_model(tuning_job) -> None:
-    """
-    Evaluates the tuned model and logs the evaluation process.
-    
-    Parameters:
-        tuning_job: The object representing the tuning job.
-    """
-    try:
-        logger.info("Evaluating the tuned model.")
-        evaluate_model(tuning_job)
-        logger.info("Model evaluation completed.")
-    except Exception as e:
-        logger.exception("Model evaluation failed.")
-        raise e
-
-
-def plot_and_log_metrics(tuning_job) -> None:
-    """
-    Plots the evaluation metrics and logs the process.
-
-    Parameters:
-        tuning_job: The object representing the tuning job.
-    """
-    try:
-        logger.info("Plotting the evaluation metrics.")
-        plot_metrics(tuning_job)
-        logger.info("Metrics plotting completed.")
-    except Exception as e:
-        logger.exception("Failed to plot metrics.")
         raise e
 
 
