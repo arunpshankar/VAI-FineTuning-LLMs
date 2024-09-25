@@ -4,7 +4,6 @@ from src.config.logging import logger
 from src.config.loader import config
 from google.cloud import aiplatform
 from vertexai.tuning import sft
-from typing import Optional
 import os
 
 
@@ -58,8 +57,8 @@ def initialize_environment() -> None:
     """
     try:
         logger.info("Setting up the environment for Vertex AI.")
-        project: Optional[str] = config.PROJECT.get('project_id')
-        location: Optional[str] = config.PROJECT.get('location')
+        project = config.PROJECT.get('project_id')
+        location = config.PROJECT.get('location')
         
         if not project or not location:
             raise ValueError("Project ID or location is missing in the configuration.")
@@ -87,8 +86,8 @@ def get_tuning_job(tuning_job_id: str) -> sft.SupervisedTuningJob:
     """
     try:
         logger.info("Retrieving the tuning job with ID: %s", tuning_job_id)
-        project: str = config.PROJECT.get('project_id')
-        location: str = config.PROJECT.get('location')
+        project = config.PROJECT.get('project_id')
+        location = config.PROJECT.get('location')
         
         job = sft.SupervisedTuningJob(
             f"projects/{project}/locations/{location}/tuningJobs/{tuning_job_id}"
@@ -101,7 +100,7 @@ def get_tuning_job(tuning_job_id: str) -> sft.SupervisedTuningJob:
         raise e
 
 
-def evaluate_and_log_model(tuning_job: sft.SupervisedTuningJob) -> None:
+def evaluate_and_log_model(tuning_job) -> None:
     """
     Evaluates the tuned model and logs the evaluation process.
 
@@ -121,7 +120,7 @@ def evaluate_and_log_model(tuning_job: sft.SupervisedTuningJob) -> None:
         raise e
 
 
-def plot_and_log_metrics(tuning_job: sft.SupervisedTuningJob) -> None:
+def plot_and_log_metrics(tuning_job) -> None:
     """
     Plots the evaluation metrics and logs the process.
 

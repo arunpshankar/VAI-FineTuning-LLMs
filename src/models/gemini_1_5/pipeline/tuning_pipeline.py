@@ -21,9 +21,7 @@ def run():
         prepare_and_log_data()
 
         # Step 3: Model tuning
-        tuning_job = tune_and_log_model()
-        print(tuning_job)
-        print(tuning_job.__dict__)
+        tune_and_log_model()
 
         logger.info("Pipeline completed successfully.")
     
