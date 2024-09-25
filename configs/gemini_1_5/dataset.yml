@@ -3,4 +3,4 @@ dataset:
   validation_dataset_local_path: './data/gemini_1_5/sft_val_samples.jsonl'
   train_dataset_path: 'gs://vai-finetuning-llms/gemini_1_5/train/sft_train_samples.jsonl'
   validation_dataset_path: 'gs://vai-finetuning-llms/gemini_1_5/val/sft_val_samples.jsonl'
-  test_dataset_path: './data/gemini_1_5/sft_test_samples_small.csv'
+  test_dataset_path: './data/gemini_1_5/sft_test_samples.csv'
