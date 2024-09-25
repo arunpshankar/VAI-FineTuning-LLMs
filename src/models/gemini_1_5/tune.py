@@ -1,8 +1,13 @@
 from vertexai.preview.tuning import sft
 from src.config.logging import logger
 from src.config.loader import config
+from google.auth import default
 import time
+import os
 
+
+# Set the environment variable for Google Application Credentials
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.PROJECT.get('credentials_path')
 
 def tune_model():
     """
@@ -91,6 +96,7 @@ def start_tuning_job(base_model: str, train_dataset: str, validation_dataset: st
     """
     try:
         logger.info(f"Starting tuning job with model {base_model} and display name {tuned_model_display_name}.")
+
         return sft.train(
             source_model=base_model,
             train_dataset=train_dataset,
@@ -98,7 +104,7 @@ def start_tuning_job(base_model: str, train_dataset: str, validation_dataset: st
             epochs=epochs,
             learning_rate_multiplier=learning_rate_multiplier,
             tuned_model_display_name=tuned_model_display_name,
-            adapter_size=adapter_size,
+            adapter_size=adapter_size
         )
     except Exception as e:
         logger.exception("Failed to start the tuning job.")

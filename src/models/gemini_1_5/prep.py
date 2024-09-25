@@ -16,8 +16,8 @@ def prepare_data() -> None:
     logger.info("Starting data preparation.")
     try:
         # Access dataset paths from the config
-        train_file_local = './data/gemini_1_5/sft_train_samples.jsonl'
-        val_file_local = './data/gemini_1_5/sft_val_samples.jsonl'
+        train_file_local = config.DATASET.get('train_dataset_local_path')
+        val_file_local = config.DATASET.get('validation_dataset_local_path')
 
         train_dataset_path = config.DATASET.get('train_dataset_path')
         val_dataset_path = config.DATASET.get('validation_dataset_path')
