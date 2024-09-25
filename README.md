@@ -1,11 +1,13 @@
-# Fine-Tuning LLMs Using Vertex AI
+# Vertex AI LLM Fine-Tuning Examples
 
-This repository encapsulates code for fine-tuning large language models (LLMs) supported within Vertex AI. It covers various fine-tuning techniques for:
+This repository provides clean and well-documented example code for fine-tuning large language models (LLMs) supported by Vertex AI. It includes various fine-tuning paradigms for:
 
-- **Foundational models** like **Gemini 1.5 Pro**
-- **Open-source models** available through **Model Garden**
-- **Third-party models** accessible via Model Garden
-- Additional models supported for fine-tuning
+- **Google's Proprietary Foundational Models**: Examples include **Gemini 1.5 Pro**.
+- **Supported Open-Source Models**: Accessible through **Model Garden**, such as **Llama 3.1**, **Gemma 2**, and others.
+- **Supported Third-Party Models**: Available via **Model Garden** with comprehensive fine-tuning examples.
+- **Additional Models**: Examples of other models supported for fine-tuning within the Vertex AI ecosystem.
+
+This repository is designed to demonstrate best practices for LLM fine-tuning with detailed explanations and optimized workflows.
 
 ## Setup Instructions
 
