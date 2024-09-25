@@ -6,7 +6,8 @@ from src.config.logging import logger
 from src.config.loader import config
 from rouge_score import rouge_scorer
 from random import randint
-from typing import List, Dict
+from typing import Dict 
+from typing import List 
 from time import sleep
 from tqdm import tqdm
 import pandas as pd
@@ -48,6 +49,11 @@ def evaluate_model(tuning_job) -> None:
         # Log evaluation statistics
         evaluation_stats = evaluation_df.dropna().describe()
         logger.info(f"Evaluation completed. Metrics: \n{evaluation_stats}")
+
+        # Save evaluation results as CSV
+        output_csv_path = "./data/output/gemini_1_5/evaluation_results.csv"
+        evaluation_df.to_csv(output_csv_path, index=False)
+        logger.info(f"Evaluation results saved to {output_csv_path}")
 
     except Exception as e:
         logger.exception("An error occurred during model evaluation.")
