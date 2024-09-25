@@ -6,10 +6,11 @@ from src.config.loader import config
 from google.cloud import aiplatform
 import plotly.graph_objects as go
 from vertexai.tuning import sft
+import matplotlib.pyplot as plt
 import os
 
 
-def get_metrics(tuning_job_id):
+def get_metrics(tuning_job):
     """
     Get metrics from Tensorboard for a specific tuning job.
 
@@ -21,11 +22,8 @@ def get_metrics(tuning_job_id):
     Returns:
         dict: Dictionary containing train and eval loss metrics.
     """
-    project_id = config.PROJECT.get('project_id')
-    location = config.PROJECT.get('location')
 
-    job = sft.SupervisedTuningJob(f"projects/{project_id}/locations/{location}/tuningJobs/{tuning_job_id}")
-    experiment_name = job.experiment.resource_name
+    experiment_name = tuning_job.experiment.resource_name
 
     experiment = aiplatform.Experiment(experiment_name=experiment_name)
     filter_str = metadata_utils._make_filter_string(
@@ -33,60 +31,70 @@ def get_metrics(tuning_job_id):
         parent_contexts=[experiment.resource_name],
     )
     experiment_run = context.Context.list(filter_str)[0]
+    print(experiment_run)
 
     tensorboard_run_name = f"{experiment.get_backing_tensorboard_resource().resource_name}/experiments/{experiment.name}/runs/{experiment_run.name.replace(experiment.name, '')[1:]}"
     tensorboard_run = aiplatform.TensorboardRun(tensorboard_run_name)
+    print(tensorboard_run, '<<<')
     metrics = tensorboard_run.read_time_series_data()
 
-    def extract_metric(metric_name):
-        values = metrics[metric_name].values
-        return [loss.step for loss in values], [loss.scalar.value for loss in values]
-
-    train_loss = extract_metric("/train_total_loss")
-    eval_loss = extract_metric("/eval_total_loss")
-
-    return {
-        "train_loss": train_loss,
-        "eval_loss": eval_loss
-    }
+    return metrics
 
 
-def plot_metrics(metrics, output_path):
+def get_loss_values(metrics, metric: str = "/train_total_loss"):
     """
-    Plot metrics and save the plot as a PNG file.
+    Get metrics from Tensorboard.
 
     Args:
-        metrics (dict): Dictionary containing train and eval loss metrics.
-        output_path (str): Path to save the output PNG file.
+      metric: metric name, eg. /train_total_loss or /eval_total_loss.
+    Returns:
+      steps: list of steps.
+      steps_loss: list of loss values.
     """
-    metrics = get_metrics()
-    fig = make_subplots(
-        rows=1, cols=2, shared_xaxes=True, subplot_titles=("Train Loss", "Eval Loss")
-    )
+    loss_values = metrics[metric].values
+    steps_loss = []
+    steps = []
+    for loss in loss_values:
+        steps_loss.append(loss.scalar.value)
+        steps.append(loss.step)
+    return steps, steps_loss
 
-    fig.add_trace(
-        go.Scatter(x=metrics["train_loss"][0], y=metrics["train_loss"][1], name="Train Loss", mode="lines"),
-        row=1, col=1
-    )
-    fig.add_trace(
-        go.Scatter(x=metrics["eval_loss"][0], y=metrics["eval_loss"][1], name="Eval Loss", mode="lines"),
-        row=1, col=2
-    )
-
-    fig.update_layout(
-        title="Train and Eval Loss",
-        xaxis_title="Steps",
-        yaxis_title="Loss",
-        height=600,
-        width=1000
-    )
-
-    fig.update_xaxes(title_text="Steps")
-    fig.update_yaxes(title_text="Loss")
+def plot_metrics(tuning_job):
+    """
+    Plot metrics using Matplotlib and save the plot as a PNG file.
+    
+    Args:
+        tuning_job: The tuning job object containing metrics.
+    """
+    metrics = get_metrics(tuning_job)
+    train_steps, train_loss = get_loss_values(metrics, metric="/train_total_loss")
+    eval_steps, eval_loss = get_loss_values(metrics, metric="/eval_total_loss")
+    
+    plt.figure(figsize=(12, 6))
+    
+    # Train Loss subplot
+    plt.subplot(1, 2, 1)
+    plt.plot(train_steps, train_loss, label='Train Loss')
+    plt.title('Train Loss')
+    plt.xlabel('Steps')
+    plt.ylabel('Loss')
+    plt.legend()
+    
+    # Eval Loss subplot
+    plt.subplot(1, 2, 2)
+    plt.plot(eval_steps, eval_loss, label='Eval Loss', color='orange')
+    plt.title('Eval Loss')
+    plt.xlabel('Steps')
+    plt.ylabel('Loss')
+    plt.legend()
+    
+    plt.suptitle('Train and Eval Loss', fontsize=16)
+    plt.tight_layout()
+    
     output_path = './data/output/gemini_1_5/loss_plot.png'
-
-    # Ensure the output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-    # Save the figure as a PNG file
-    fig.write_image(output_path, scale=2)  # scale=2 for higher resolution
+    
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    print(f"Plot saved to {output_path}")

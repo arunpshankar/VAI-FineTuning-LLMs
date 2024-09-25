@@ -10,7 +10,7 @@ import os
 # Set the environment variable for Google Application Credentials
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.PROJECT.get('credentials_path')
 
-def run():
+def run(tuning_job_id):
     """
     Main function to run the evaluation pipeline for Gemini 1.5 model.
     This function follows these steps:
@@ -24,8 +24,9 @@ def run():
         # Step 1: Initialize environment
         initialize_environment()
 
+
         # Step 2: Get the tuning job
-        tuning_job = get_tuning_job()
+        tuning_job = get_tuning_job(tuning_job_id)
 
         # Step 3: Model evaluation
         evaluate_and_log_model(tuning_job)
@@ -55,7 +56,7 @@ def initialize_environment() -> None:
         raise e
 
 
-def get_tuning_job():
+def get_tuning_job(tuning_job_id):
     """
     Retrieves the tuning job using its ID.
 
@@ -66,7 +67,7 @@ def get_tuning_job():
         logger.info("Retrieving the tuning job.")
         project = config.PROJECT.get('project_id')
         location = config.PROJECT.get('location')
-        tuning_job_id = "40843661516210176"  # You might want to make this configurable
+        
         job = sft.SupervisedTuningJob(
             f"projects/{project}/locations/{location}/tuningJobs/{tuning_job_id}"
         )
@@ -109,4 +110,5 @@ def plot_and_log_metrics(tuning_job) -> None:
 
 
 if __name__ == '__main__':
-    run()
+    tuning_job_id = "4577657336138563584" 
+    run(tuning_job_id)
