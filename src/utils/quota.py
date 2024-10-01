@@ -242,8 +242,74 @@ def _extract_quota_for_region(quota_data: Optional[dict], region: str) -> int:
     return -1
 
 
+def check_quota(
+    project_id: str,
+    region: str,
+    accelerator_type: str,
+    accelerator_count: int,
+    is_for_training: bool,
+    is_restricted_image: bool = False,
+    is_dynamic_workload_scheduler: bool = False,
+) -> None:
+    """
+    Checks if the project and the region have the required quota for a specific resource.
+    
+    Args:
+        project_id (str): The project ID.
+        region (str): The region where the quota check is required.
+        accelerator_type (str): The type of accelerator.
+        accelerator_count (int): The number of accelerators needed.
+        is_for_training (bool): Flag indicating if the resource is for training.
+        is_restricted_image (bool, optional): Flag indicating if the resource is using a restricted image. Defaults to False.
+        is_dynamic_workload_scheduler (bool, optional): Flag indicating if a dynamic workload scheduler is used. Defaults to False.
+
+    Raises:
+        ValueError: If the quota is not found or is insufficient for the request.
+    """
+    
+    logger.info("Checking quota for project: %s in region: %s", project_id, region)
+    
+    try:
+        resource_id: str = get_resource_id(
+            accelerator_type,
+            is_for_training=is_for_training,
+            is_restricted_image=is_restricted_image,
+            is_dynamic_workload_scheduler=is_dynamic_workload_scheduler,
+        )
+        logger.info("Resource ID determined: %s", resource_id)
+
+        quota: Optional[int] = get_quota(project_id, region, resource_id)
+        quota_request_instruction = (
+            "Either use a different region or request additional quota. "
+            "Follow instructions here: "
+            "https://cloud.google.com/docs/quotas/view-manage#requesting_higher_quota"
+            " to check quota in a region or request additional quota for your project."
+        )
+
+        if quota == -1:
+            logger.error("Quota not found for resource ID: %s in region: %s", resource_id, region)
+            raise ValueError(
+                f"Quota not found for: {resource_id} in {region}. {quota_request_instruction}"
+            )
+
+        if quota < accelerator_count:
+            logger.error("Insufficient quota for resource ID: %s in region: %s. Available: %d, Required: %d", 
+                         resource_id, region, quota, accelerator_count)
+            raise ValueError(
+                f"Quota not enough for {resource_id} in {region}: {quota} < {accelerator_count}. "
+                f"{quota_request_instruction}"
+            )
+
+        logger.info("Sufficient quota available for resource ID: %s in region: %s", resource_id, region)
+
+    except ValueError as e:
+        logger.error("Error during quota check: %s", str(e))
+        raise
+
+
 if __name__ == "__main__":
     accelerator_type = "NVIDIA_A100_80GB"  # You can change this to other types like "NVIDIA_TESLA_V100", "TPU_V3", etc.
+    accelerator_count = 1
     is_for_training = False  # True for training, False for serving
     is_restricted_image = True  # Set to True for restricted image testing
     is_dynamic_workload_scheduler = False  # Set to True if dynamic workload scheduler is being used
@@ -259,7 +325,6 @@ if __name__ == "__main__":
         is_dynamic_workload_scheduler=is_dynamic_workload_scheduler
     )
 
-    # Output the result
     logger.info(f"Generated Resource ID: {resource_id}")
 
     quota = get_quota(project_id, region, resource_id)
@@ -268,3 +333,6 @@ if __name__ == "__main__":
         logger.info(f"Quota for {resource_id} in region {region}: {quota}")
     else:
         logger.error(f"Failed to retrieve quota for {resource_id} in region {region}")
+
+
+    check_quota(project_id, region, accelerator_type, accelerator_count, is_for_training, is_restricted_image, is_dynamic_workload_scheduler)
