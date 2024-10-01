@@ -62,3 +62,6 @@ python src/models/gemini_1_5/pipeline/evaluation_pipeline.py
 
 ### Example: Gemini 1.5 Pro Fine-Tuning
 The included example demonstrates how to fine-tune **Gemini 1.5 Pro** for **abstract summarization**. The input consists of a context and a prompt, while the output is the expected summary or completion of the provided text. This example utilizes **LoRA** (Low-Rank Adaptation) for fine-tuning.
+
+
+**Note**: For Gemma deployment, the quota utilities use gcloud. Ensure both gcloud and gcloud [alpha] are installed on your system.

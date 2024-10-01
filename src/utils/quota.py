@@ -1,9 +1,13 @@
 from src.config.logging import logger
-from typing import Dict
-from typing import Any 
+from src.config.loader import config
+from typing import Optional
 import subprocess
-import json
+import json 
+import os 
 
+
+# Set the environment variable for Google Application Credentials
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.PROJECT.get('credentials_path')
 
 # Mapping accelerator types to their respective resource suffixes
 ACCELERATOR_SUFFIX_MAP = {
@@ -152,12 +156,100 @@ def _get_serving_id(accelerator_type: str) -> str:
     return serving_id
 
 
+def get_quota(project_id: str, region: str, resource_id: str) -> int:
+    """
+    Returns the quota for a resource in a specific region.
+
+    Args:
+        project_id: The project id.
+        region: The region.
+        resource_id: The resource id.
+
+    Returns:
+        The quota for the resource in the region. Returns -1 if unable to determine the quota.
+    """
+    try:
+        quota_data = _fetch_quota_data(project_id, resource_id)
+        print(quota_data)
+        return _extract_quota_for_region(quota_data, region)
+    except Exception as e:
+        logger.error(f"Failed to get quota: {e}")
+        return -1
+
+def _fetch_quota_data(project_id: str, resource_id: str) -> Optional[dict]:
+    """
+    Fetches quota data from the gcloud command.
+
+    Args:
+        project_id: The project id.
+        resource_id: The resource id.
+
+    Returns:
+        The quota data in JSON format as a dictionary.
+    
+    Raises:
+        RuntimeError: If the gcloud command to fetch quota data fails.
+    """
+    service_endpoint = "aiplatform.googleapis.com"
+    command = (
+        f"gcloud alpha services quota list --service={service_endpoint} "
+        f"--consumer=projects/{project_id} "
+        f"--filter='{service_endpoint}/{resource_id}' --format=json"
+    )
+    
+    try:
+        process = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+        logger.info(f"Quota data fetched successfully for project {project_id}.")
+        return json.loads(process.stdout)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error executing gcloud command: {e.stderr}")
+        raise RuntimeError(f"Error fetching quota data: {e.stderr}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to decode JSON response: {e}")
+        raise RuntimeError(f"Error decoding quota data: {e}")
+    
+
+def _extract_quota_for_region(quota_data: Optional[dict], region: str) -> int:
+    """Extracts the effective quota limit for a specific region from the quota data.
+
+    Args:
+        quota_data: The quota data dictionary.
+        region: The region for which to extract the quota.
+
+    Returns:
+        The effective quota limit for the region, or -1 if not found.
+    """
+    if not quota_data or "consumerQuotaLimits" not in quota_data[0]:
+        logger.warning("Invalid or empty quota data.")
+        return -1
+    
+    quota_limits = quota_data[0].get("consumerQuotaLimits", [])
+    if not quota_limits or "quotaBuckets" not in quota_limits[0]:
+        logger.warning("Quota limits or quota buckets not found.")
+        return -1
+    
+    for region_data in quota_limits[0]["quotaBuckets"]:
+        if region_data.get("dimensions", {}).get("region") == region:
+            effective_limit = region_data.get("effectiveLimit")
+            if effective_limit is not None:
+                logger.info(f"Quota for region {region}: {effective_limit}")
+                return int(effective_limit)
+            else:
+                logger.info(f"No effective limit found for region {region}.")
+                return 0
+    
+    logger.warning(f"No data found for region {region}.")
+    return -1
+
+
 if __name__ == "__main__":
-    # Hardcoded values for testing
     accelerator_type = "NVIDIA_A100_80GB"  # You can change this to other types like "NVIDIA_TESLA_V100", "TPU_V3", etc.
     is_for_training = False  # True for training, False for serving
     is_restricted_image = True  # Set to True for restricted image testing
     is_dynamic_workload_scheduler = False  # Set to True if dynamic workload scheduler is being used
+
+    project_id = config.PROJECT.get('project_id')
+    region = config.PROJECT.get('location')
 
     # Fetch the resource ID
     resource_id = get_resource_id(
@@ -169,3 +261,10 @@ if __name__ == "__main__":
 
     # Output the result
     logger.info(f"Generated Resource ID: {resource_id}")
+
+    quota = get_quota(project_id, region, resource_id)
+
+    if quota != -1:
+        logger.info(f"Quota for {resource_id} in region {region}: {quota}")
+    else:
+        logger.error(f"Failed to retrieve quota for {resource_id} in region {region}")

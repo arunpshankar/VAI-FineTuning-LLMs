@@ -15,6 +15,7 @@ google-cloud-aiplatform==1.67.1
 google-cloud-bigquery==3.25.0
 google-cloud-core==2.4.1
 google-cloud-resource-manager==1.12.5
+google-cloud-service-usage==1.10.5
 google-cloud-storage==2.18.2
 google-crc32c==1.6.0
 google-resumable-media==2.7.2
