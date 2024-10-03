@@ -1,10 +1,13 @@
 from src.config.logging import logger
-from src.config.loader import config
+from src.config.loader import Config
 from typing import Optional
 import subprocess
 import json 
 import os 
 
+
+# Load default config
+config = Config(model_name=None)
 
 # Set the environment variable for Google Application Credentials
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = config.PROJECT.get('credentials_path')
