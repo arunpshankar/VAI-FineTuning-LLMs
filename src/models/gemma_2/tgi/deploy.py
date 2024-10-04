@@ -7,48 +7,6 @@ from typing import Dict
 import os
 
 
-def setup_environment(config: Config) -> None:
-    """
-    Sets up environment variables for Google Cloud credentials based on the given configuration.
-    
-    Args:
-        config (Config): The configuration object containing project details.
-    
-    Raises:
-        KeyError: If the credentials_path is not found in the configuration.
-    """
-    credentials_path = config.PROJECT.get('credentials_path')
-    if not credentials_path:
-        logger.error("Credentials path not found in configuration")
-        raise KeyError("Missing credentials_path in configuration")
-
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
-    logger.info("Google Application Credentials set successfully")
-
-
-def load_hf_token(file_path: str) -> str:
-    """
-    Loads the Hugging Face token from a YAML file.
-
-    Args:
-        file_path (str): Path to the YAML file containing the HF token.
-
-    Returns:
-        str: The HF token.
-
-    Raises:
-        KeyError: If the key is not found in the YAML file.
-    """
-    yaml_data = load_yaml(file_path)
-    hf_token = yaml_data.get('key')
-    if not hf_token:
-        logger.error(f"HF token not found in YAML file: {file_path}")
-        raise KeyError("HF token not found")
-    
-    logger.info("HF token loaded successfully")
-    return hf_token
-
-
 def set_environment_variables(config: Config, hf_token: str) -> Dict[str, str]:
     """
     Sets up the environment variables for the model container deployment.
