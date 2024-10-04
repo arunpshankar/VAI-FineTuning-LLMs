@@ -1,10 +1,11 @@
+import time  # Import the time module for tracking duration
 from src.utils.common import setup_environment
 from google.cloud.aiplatform import Endpoint
 from src.config.logging import logger
 from src.config.loader import Config
 from typing import List
-from typing import Dict 
-from typing import Any 
+from typing import Dict
+from typing import Any
 
 
 def prepare_prompt(prompt: str, config: Config) -> List[Dict[str, Any]]:
@@ -80,8 +81,17 @@ def run() -> None:
         endpoint = Endpoint(endpoint_name=config.GENERATION.get('endpoint_name'))
         logger.info(f"Endpoint initialized: {config.GENERATION.get('endpoint_name')}")
 
+        # Start timing the prediction
+        start_time = time.time()
+        logger.info("Starting prediction...")
+
         # Make the prediction
         predictions = make_prediction(endpoint, instances)
+
+        # Stop timing the prediction
+        end_time = time.time()
+        duration = end_time - start_time
+        logger.info(f"Prediction took {duration:.2f} seconds.")
 
         # Process and log predictions
         for prediction in predictions:
