@@ -1,5 +1,6 @@
-generation_config:
+generation:
+  endpoint_name: projects/arun-genai-bb/locations/us-central1/endpoints/4626007157379170304
   temperature: 0.1
-  max_output_tokens: 500
+  max_new_tokens: 128
   top_p: 0.9 
   top_k: 1 

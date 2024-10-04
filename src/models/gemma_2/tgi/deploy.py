@@ -1,10 +1,12 @@
-from src.utils.common import get_job_name_with_datetime, load_yaml
-from google.cloud.aiplatform import Endpoint, Model
+from src.utils.common import get_job_name_with_datetime
+from src.utils.common import setup_environment
+from google.cloud.aiplatform import Endpoint
+from src.utils.common import load_hf_token
+from google.cloud.aiplatform import Model 
 from src.utils.quota import check_quota
 from src.config.logging import logger
 from src.config.loader import Config
 from typing import Dict
-import os
 
 
 def set_environment_variables(config: Config, hf_token: str) -> Dict[str, str]:
