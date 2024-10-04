@@ -1,5 +1,5 @@
 deployment:
-  machine_type: g2-standard-12
+  machine_type: g2-standard-8
   accelerator_type: NVIDIA_L4
   accelerator_count: 1
-  use_dedicated_endpoint: false
+  use_dedicated_endpoint: false 

@@ -1,7 +1,7 @@
 
 model:
   model_id: google/gemma-2-2b-it
-  tgi_docker_uri: "us-docker.pkg.dev/deeplearning-platform-release/gcr.io/huggingface-text-generation-inference-cu121.2-2.ubuntu2204.py310:latest"
+  tgi_docker_uri: us-docker.pkg.dev/deeplearning-platform-release/gcr.io/huggingface-text-generation-inference-cu121.2-2.ubuntu2204.py310
   max_input_length: 2047
   max_total_tokens: 2048
   max_batch_prefill_tokens: 2048  

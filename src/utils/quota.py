@@ -173,7 +173,6 @@ def get_quota(project_id: str, region: str, resource_id: str) -> int:
     """
     try:
         quota_data = _fetch_quota_data(project_id, resource_id)
-        print(quota_data)
         return _extract_quota_for_region(quota_data, region)
     except Exception as e:
         logger.error(f"Failed to get quota: {e}")
